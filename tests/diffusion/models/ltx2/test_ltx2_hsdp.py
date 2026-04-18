@@ -5,6 +5,7 @@ from vllm_omni.diffusion.models.ltx2.ltx2_transformer import LTX2VideoTransforme
 
 pytestmark = [pytest.mark.core_model, pytest.mark.cpu]
 
+
 def test_ltx2_exposes_hsdp_shard_conditions_for_transformer_blocks():
     model = object.__new__(LTX2VideoTransformer3DModel)
     nn.Module.__init__(model)
