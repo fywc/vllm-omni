@@ -177,9 +177,7 @@ def main():
     print(f"  Guidance scale: {args.guidance_scale}")
     print(f"  Cache backend: {args.cache_backend if args.cache_backend else 'None (no acceleration)'}")
     if args.use_hsdp:
-        print(
-            f"  HSDP: enabled (shard_size={args.hsdp_shard_size}, replicate_size={args.hsdp_replicate_size})"
-        )
+        print(f"  HSDP: enabled (shard_size={args.hsdp_shard_size}, replicate_size={args.hsdp_replicate_size})")
     else:
         print("  HSDP: disabled")
     print(f"  Seed: {args.seed}")
