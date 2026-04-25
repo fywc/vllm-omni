@@ -54,7 +54,12 @@ python x_to_video_audio.py \
   --prompt "Two people walking together and singing happily" \
   --image-path ./example0.png ./example1.png \
   --audio-path ./example0.wav ./example1.wav \
+  --video-negative-prompt "jitter, bad hands, blur, distortion" \
+  --audio-negative-prompt "robotic, muffled, echo, distorted" \
   --cfg-parallel-size 2 \
+  --num-inference-steps 45 \
+  --height 704 \
+  --width 1280 \
   --use-hsdp \
   --hsdp-shard-size 2 \
   --output out_dreamid_omni_twoip.mp4
