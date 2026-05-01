@@ -36,6 +36,7 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_MODEL_PATH = REPO_ROOT / "dreamid_omni"
 MODEL_PATH_ENV = "DREAMID_OMNI_MODEL_PATH"
 EXAMPLE_ROOT_ENV = "DREAMID_OMNI_EXAMPLE_ROOT"
+NUM_INFERENCE_STEPS = 45
 
 CACHE_CONFIG = {
     "Fn_compute_blocks": 1,
@@ -245,7 +246,7 @@ def _run_generation(
 
         request_payload = _request_payload(example_case)
         start = time.perf_counter()
-        outputs = runner.omni.generate(request_payload, _sampling_params(10))
+        outputs = runner.omni.generate(request_payload, _sampling_params(NUM_INFERENCE_STEPS))
         elapsed_s = time.perf_counter() - start
         elapsed_samples.append(elapsed_s)
         if extracted_result is None:
