@@ -1,7 +1,7 @@
 import pytest
 import torch.nn as nn
 
-pytest.importorskip("dreamid_omni")
+pytest.importorskip("dreamid_omni.modules.model")
 
 from vllm_omni.diffusion.models.dreamid_omni.fusion import FusionModel
 
