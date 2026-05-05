@@ -45,7 +45,7 @@ whether you want T2V or I2V.
 ```bash
 vllm serve Lightricks/LTX-2 \
   --omni \
-  --model-class-name LTX2Pipeline \
+  --model-class-name LTX2Pipeline
 ```
 
 #### Verification
@@ -88,7 +88,7 @@ curl -X POST http://localhost:8000/v1/videos \
 ```bash
 vllm serve Lightricks/LTX-2 \
   --omni \
-  --model-class-name LTX2ImageToVideoPipeline \
+  --model-class-name LTX2ImageToVideoPipeline
 ```
 
 #### Verification
