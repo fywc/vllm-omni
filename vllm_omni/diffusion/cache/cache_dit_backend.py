@@ -1386,8 +1386,8 @@ def enable_cache_for_dreamid_omni(pipeline: Any, cache_config: Any) -> Callable[
             )
 
     return refresh_cache_context
-  
-  
+
+
 def enable_cache_for_ernie_image(pipeline: Any, cache_config: Any) -> Callable[[int], None]:
     """Enable cache-dit for ERNIE-Image pipeline.
 
