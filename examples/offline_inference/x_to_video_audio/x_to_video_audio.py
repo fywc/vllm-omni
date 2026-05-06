@@ -64,6 +64,23 @@ def parse_args() -> argparse.Namespace:
         help="Enable layerwise (blockwise) offloading on DiT modules.",
     )
     parser.add_argument("--cache-backend", type=str, default=None, choices=["cache_dit"], help="Cache backend.")
+    parser.add_argument(
+        "--use-hsdp",
+        action="store_true",
+        help="Enable HSDP for DreamID-Omni fused transformer blocks.",
+    )
+    parser.add_argument(
+        "--hsdp-shard-size",
+        type=int,
+        default=1,
+        help="Number of GPUs used for HSDP sharding when HSDP is enabled.",
+    )
+    parser.add_argument(
+        "--hsdp-replicate-size",
+        type=int,
+        default=1,
+        help="Number of HSDP replica groups. Default 1 means pure sharding.",
+    )
     return parser.parse_args()
 
 
@@ -125,6 +142,9 @@ def main() -> None:
 
     parallel_config = DiffusionParallelConfig(
         cfg_parallel_size=args.cfg_parallel_size,
+        use_hsdp=args.use_hsdp,
+        hsdp_shard_size=args.hsdp_shard_size,
+        hsdp_replicate_size=args.hsdp_replicate_size,
     )
 
     cache_config = None
