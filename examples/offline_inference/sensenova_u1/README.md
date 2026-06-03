@@ -223,4 +223,4 @@ The img2img counterpart lives at
 ## Online Serving
 
 For OpenAI-compatible API serving, see
-[`examples/online_serving/sensenova_u1/`](../../online_serving/sensenova_u1/).
+[`examples/online_serving/sensenova_u1/`](../../online_serving/sensenova_u1/README.md).
