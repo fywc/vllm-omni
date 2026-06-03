@@ -69,6 +69,14 @@ _OMNI_PIPELINES: dict[str, tuple[str, str]] = {
         "vllm_omni.model_executor.models.lance.pipeline",
         "LANCE_PIPELINE",
     ),
+    "sensenova_u1": (
+        "vllm_omni.model_executor.models.sensenova_u1.pipeline",
+        "SENSENOVA_U1_PIPELINE",
+    ),
+    "sensenova_u1_single_stage": (
+        "vllm_omni.model_executor.models.sensenova_u1.pipeline",
+        "SENSENOVA_U1_SINGLE_STAGE_PIPELINE",
+    ),
     "dreamzero": (
         "vllm_omni.model_executor.models.dreamzero.pipeline",
         "DREAMZERO_PIPELINE",
@@ -153,11 +161,4 @@ _OMNI_PIPELINES: dict[str, tuple[str, str]] = {
         "vllm_omni.model_executor.models.dynin_omni.pipeline",
         "DYNIN_OMNI_PIPELINE",
     ),
-    "sensenova_u1": (
-        "vllm_omni.model_executor.models.sensenova_u1.pipeline",
-        "SENSENOVA_U1_PIPELINE",
-    ),
-    "sensenova_u1_single_stage": (
-        "vllm_omni.model_executor.models.sensenova_u1.pipeline",
-        "SENSENOVA_U1_SINGLE_STAGE_PIPELINE",
 }
