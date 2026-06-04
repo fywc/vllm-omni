@@ -38,14 +38,12 @@ _MODEL_COEFFICIENTS = {
     # Using Qwen's coefficients as reasonable default given shared architecture
     "Bagel": [1.33313129e06, -1.68644226e05, 7.95050740e03, -1.63747873e02, 1.26352397e00],
     # SenseNova-U1 transformer coefficients
-    # Reuse Bagel's MoT/LLM-denoising coefficients as the initial default.
-    # These should be calibrated for SenseNova-U1 once prompt-level samples are available.
     "SenseNovaU1ForCausalLM": [
-        1.33313129e06,
-        -1.68644226e05,
-        7.95050740e03,
-        -1.63747873e02,
-        1.26352397e00,
+        9.07281930e04,
+        -2.17699186e04,
+        1.83940990e03,
+        -6.30339273e01,
+        7.61309272e-01,
     ],
     # Z-Image transformer coefficients
     # Copied from Qwen-Image, need to be tuned specifically for Z-Image in future
