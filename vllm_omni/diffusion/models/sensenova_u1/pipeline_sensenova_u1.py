@@ -488,6 +488,30 @@ def _optimized_scale(positive_flat, negative_flat):
 # ---------------------------------------------------------------------------
 
 
+class SenseNovaU1DenoisingAdapter(nn.Module):
+    """Denoising-only entry point used by cache backends."""
+
+    def __init__(self, language_model: SenseNovaU1ForCausalLM):
+        super().__init__()
+        object.__setattr__(self, "language_model", language_model)
+        self.do_true_cfg = True
+
+    @property
+    def model(self):
+        return self.language_model.model
+
+    @property
+    def lm_head(self):
+        return self.language_model.lm_head
+
+    @property
+    def logits_processor(self):
+        return self.language_model.logits_processor
+
+    def forward(self, *args, **kwargs):
+        return self.language_model(*args, **kwargs)
+
+
 class SenseNovaU1Pipeline(nn.Module, SupportsComponentDiscovery, DiffusionPipelineProfilerMixin):
     """SenseNova-U1 text-to-image and image-to-image pipeline for vllm-omni.
 
@@ -554,6 +578,7 @@ class SenseNovaU1Pipeline(nn.Module, SupportsComponentDiscovery, DiffusionPipeli
             self.llm_cfg,
             prefix="language_model",
         )
+        self.transformer = SenseNovaU1DenoisingAdapter(self.language_model)
 
         # Vision model (understanding branch)
         self.vision_model = NEOVisionModel(self.vis_cfg)
@@ -720,7 +745,8 @@ class SenseNovaU1Pipeline(nn.Module, SupportsComponentDiscovery, DiffusionPipeli
         **_kw,
     ):
         B, L = z.shape[0], z.shape[1]
-        outputs = self.language_model(
+        denoising_model = self.language_model if cache_dit_skip else self.transformer
+        outputs = denoising_model(
             inputs_embeds=input_embeds,
             image_gen_indicators=torch.ones(
                 (input_embeds.shape[0], input_embeds.shape[1]), dtype=torch.bool, device=input_embeds.device
