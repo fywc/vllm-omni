@@ -1163,15 +1163,6 @@ class StageConfigFactory:
         if trust_remote_code is None:
             trust_remote_code = False
 
-        # An explicit deploy YAML with ``pipeline: ...`` should select that
-        # pipeline even when the HF config's model_type is generic or missing.
-        if deploy_config_path is not None:
-            deploy_path = Path(deploy_config_path)
-            if deploy_path.exists():
-                deploy_cfg = load_deploy_config(deploy_path)
-                if deploy_cfg.pipeline and deploy_cfg.pipeline in _PIPELINE_REGISTRY:
-                    return cls._create_from_registry(deploy_cfg.pipeline, cli_overrides, deploy_config_path)
-
         # --- New path: check pipeline registry by model_type first ---
         model_type, hf_config = cls._auto_detect_model_type(model, trust_remote_code=trust_remote_code)
         if model_type == "vla":
@@ -1179,6 +1170,14 @@ class StageConfigFactory:
 
             if _looks_like_dreamzero(model):
                 model_type = "dreamzero"
+
+        if model_type == "neo_chat" and deploy_config_path is not None:
+            deploy_path = Path(deploy_config_path)
+            if deploy_path.exists():
+                deploy_cfg = load_deploy_config(deploy_path)
+                if deploy_cfg.pipeline and deploy_cfg.pipeline in _PIPELINE_REGISTRY:
+                    return cls._create_from_registry(deploy_cfg.pipeline, cli_overrides, deploy_config_path)
+
         if model_type and model_type in _PIPELINE_REGISTRY:
             return cls._create_from_registry(model_type, cli_overrides, deploy_config_path)
 

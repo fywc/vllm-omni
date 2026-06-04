@@ -1361,12 +1361,12 @@ class SenseNovaU1Pipeline(nn.Module, SupportsComponentDiscovery, DiffusionPipeli
         )
 
     def _requires_injected_kv(self, req: OmniDiffusionRequest) -> bool:
-        if getattr(req, "request_id", None) == "dummy_req_id" or getattr(req, "request_ids", None) == ["dummy_req_id"]:
+        injected_kv = req.sampling_params.past_key_values
+        if injected_kv is None:
             return False
         od_config = getattr(self, "od_config", None)
         omni_kv_config = getattr(od_config, "omni_kv_config", None)
-        omni_kv_config = omni_kv_config if isinstance(omni_kv_config, dict) else {}
-        return bool(omni_kv_config.get("need_recv_cache"))
+        return omni_kv_config.get("need_recv_cache")
 
     def _execute_denoise_inputs(self, inputs: SenseNovaU1DenoiseInputs) -> DiffusionOutput:
         return self._run_denoising_loop(inputs.ns, inputs.caches, inputs.p, inputs.think_text)
