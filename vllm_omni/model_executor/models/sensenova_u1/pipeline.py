@@ -23,7 +23,7 @@ _PROC = "vllm_omni.model_executor.stage_input_processors.sensenova_u1"
 SENSENOVA_U1_PIPELINE = PipelineConfig(
     model_type="sensenova_u1",
     model_arch="OmniSenseNovaU1ForCausalLM",
-    hf_architectures=("NEOChatModel",),
+    hf_architectures=(),
     stages=(
         StagePipelineConfig(
             stage_id=0,
