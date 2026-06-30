@@ -197,6 +197,8 @@ class TeaCacheBackend(CacheBackend):
 
         # Extract transformer from pipeline
         transformer = pipeline.transformer
+        if not hasattr(transformer, "_hook_registry") and hasattr(pipeline, "denoising_transformer"):
+            transformer = pipeline.denoising_transformer
 
         if hasattr(transformer, "_hook_registry"):
             hook = transformer._hook_registry.get_hook(TeaCacheHook._HOOK_NAME)
