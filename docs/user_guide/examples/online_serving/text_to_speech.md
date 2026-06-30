@@ -79,7 +79,7 @@ response = client.audio.speech.create(
 response.stream_to_file("output.wav")
 ```
 
-Streaming PCM output (where supported) — set `stream=true` with `response_format="pcm"`:
+Streaming PCM output (where supported) — set `stream=true`, `stream_format="audio"`, and `response_format="pcm"`:
 
 ```bash
 curl -X POST http://localhost:8091/v1/audio/speech \
@@ -88,6 +88,7 @@ curl -X POST http://localhost:8091/v1/audio/speech \
         "input": "Hello, how are you?",
         "voice": "default",
         "stream": true,
+        "stream_format": "audio",
         "response_format": "pcm"
     }' --no-buffer | play -t raw -r 24000 -e signed -b 16 -c 1 -
 ```
@@ -414,10 +415,11 @@ curl -X POST http://localhost:8091/v1/audio/speech \
         "voice": "vivian",
         "language": "English",
         "stream": true,
+        "stream_format": "audio",
         "response_format": "pcm"
     }' --no-buffer | play -t raw -r 24000 -e signed -b 16 -c 1 -
 ```
-Streaming requires `response_format="pcm"` and `async_chunk: true` on the stage config (default in `qwen3_tts.yaml`). `speed` is not supported when streaming.
+Raw PCM streaming requires `stream_format="audio"`, `response_format="pcm"`, and `async_chunk: true` on the stage config (default in `qwen3_tts.yaml`). `speed` is not supported when streaming.
 
 ### Streaming WebSocket
 The `/v1/audio/speech/stream` endpoint accepts text incrementally, splits it at sentence boundaries, and emits one PCM stream per sentence:
@@ -447,6 +449,7 @@ python qwen3_tts/gradio_fastrtc_demo.py --api-base http://localhost:8000
 - Base voice cloning has uniproc-vs-mp tradeoffs depending on per-request reference audio cost; see the executor-backend section above.
 - With async chunking, Qwen3-TTS Base voice cloning sends the full reference context in the first Code2Wav packet, then caches that prefix on the Code2Wav stage for follow-up chunks in the same request.
 - `vllm_omni/deploy/qwen3_tts.yaml` is the default deploy config (loaded by HF `model_type`); per-stage runtime overrides are available via `--stage-N-<field> <value>`.
+- Under vocoder-bound overload (single-stream `rtf_p99 ≥ 1` at the target concurrency), set `active_stream_window: 2` at the top of the deploy yaml to cap simultaneously active Stage 1 streams. Off by default; trades TTFP for streaming continuity. See [#3592](https://github.com/vllm-project/vllm-omni/pull/3592) for the mechanism and tradeoff numbers.
 
 ---
 
@@ -495,7 +498,7 @@ After startup, `/v1/audio/voices` lists `alice`, and `/v1/audio/speech` can use 
 ```bash
 python voxcpm2/gradio_demo.py
 ```
-Uses an AudioWorklet-based player adapted from the Qwen3-TTS demo for gap-free playback. Audio is streamed from the OpenAI Speech endpoint with `stream=true`.
+Uses an AudioWorklet-based player adapted from the Qwen3-TTS demo for gap-free playback. Raw PCM audio is streamed from the OpenAI Speech endpoint with `stream=true` and `stream_format="audio"`.
 
 ---
 

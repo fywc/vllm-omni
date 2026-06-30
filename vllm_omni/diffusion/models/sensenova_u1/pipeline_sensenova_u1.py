@@ -38,6 +38,7 @@ from vllm_omni.diffusion.model_loader.diffusers_loader import DiffusersPipelineL
 from vllm_omni.diffusion.models.interface import SupportsComponentDiscovery
 from vllm_omni.diffusion.profiler.diffusion_pipeline_profiler import DiffusionPipelineProfilerMixin
 from vllm_omni.diffusion.request import OmniDiffusionRequest
+from vllm_omni.diffusion.worker.request_batch import DiffusionRequestBatch
 
 from .sensenova_u1_transformer import (
     SenseNovaU1ForCausalLM,
@@ -528,30 +529,6 @@ class SenseNovaU1Pipeline(nn.Module, SupportsComponentDiscovery, DiffusionPipeli
 
     support_image_input = True
 
-    # Model-specific parameters accepted via ``extra_body`` in the online
-    # serving API.  The serving layer reads this set and forwards matching
-    # keys from the request payload to ``OmniDiffusionSamplingParams.extra_args``.
-    EXTRA_BODY_PARAMS: ClassVar[frozenset[str]] = frozenset(
-        {
-            "think",
-            "cfg_scale",
-            "cfg_norm",
-            "timestep_shift",
-            "t_eps",
-            "img_cfg_scale",
-            "max_tokens",
-        }
-    )
-
-    # Keys from ``DiffusionOutput.custom_output`` that should be surfaced in
-    # the API response ``metrics`` dict.  The serving layer reads this set and
-    # copies matching entries from ``custom_output`` into the response.
-    EXTRA_OUTPUT_PARAMS: ClassVar[frozenset[str]] = frozenset(
-        {
-            "think_text",
-        }
-    )
-
     # CPU-offload protocol: language_model carries the denoising blocks; the
     # vision and FM modules are lightweight encoders pinned on GPU during the
     # diffusion loop. There is no separate VAE.
@@ -559,6 +536,10 @@ class SenseNovaU1Pipeline(nn.Module, SupportsComponentDiscovery, DiffusionPipeli
     _encoder_modules: ClassVar[list[str]] = ["vision_model"]
     _vae_modules: ClassVar[list[str]] = []
     _resident_modules: ClassVar[list[str]] = ["fm_modules"]
+
+    # Top-level module(s) the diffusion LoRA manager scans (both MoT branches).
+    # TODO: promote to a shared LoRA contract/mixin instead of per-pipeline opt-in.
+    _lora_components: ClassVar[list[str]] = ["language_model"]
 
     def __init__(self, *, od_config: OmniDiffusionConfig, prefix: str = ""):
         super().__init__()
@@ -578,7 +559,12 @@ class SenseNovaU1Pipeline(nn.Module, SupportsComponentDiscovery, DiffusionPipeli
             self.llm_cfg,
             prefix="language_model",
         )
-        self.transformer = SenseNovaU1DenoisingAdapter(self.language_model)
+        # Cache-DiT hooks pipeline.transformer(.blocks), so it must point at the
+        # real decoder module (exposes .blocks and real parameters).
+        self.transformer = self.language_model.model
+        # TeaCache intercepts the ForCausalLM-level denoising forward; route it
+        # through a dedicated adapter so it does not collide with Cache-DiT.
+        self.denoising_transformer = SenseNovaU1DenoisingAdapter(self.language_model)
 
         # Vision model (understanding branch)
         self.vision_model = NEOVisionModel(self.vis_cfg)
@@ -745,7 +731,7 @@ class SenseNovaU1Pipeline(nn.Module, SupportsComponentDiscovery, DiffusionPipeli
         **_kw,
     ):
         B, L = z.shape[0], z.shape[1]
-        denoising_model = self.language_model if cache_dit_skip else self.transformer
+        denoising_model = self.language_model if cache_dit_skip else self.denoising_transformer
         outputs = denoising_model(
             inputs_embeds=input_embeds,
             image_gen_indicators=torch.ones(
@@ -1237,7 +1223,7 @@ class SenseNovaU1Pipeline(nn.Module, SupportsComponentDiscovery, DiffusionPipeli
         prepare_flash_kv_cache(kv, current_len=token_hw, batch_size=batch_size)
 
     @torch.inference_mode()
-    def forward(self, req: OmniDiffusionRequest) -> DiffusionOutput:
+    def forward(self, req: DiffusionRequestBatch) -> DiffusionOutput:
         p = self._parse_request(req)
         self.top_cfg.t_eps = p.t_eps
 
@@ -1480,6 +1466,7 @@ class SenseNovaU1Pipeline(nn.Module, SupportsComponentDiscovery, DiffusionPipeli
             (".gate_up_proj", ".gate_proj", 0),
             (".gate_up_proj", ".up_proj", 1),
         ]
+        self.stacked_params_mapping = stacked_params_mapping
 
         params_dict = dict(self.named_parameters())
         loaded_params: set[str] = set()

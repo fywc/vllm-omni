@@ -64,7 +64,7 @@ def enable_sensenova_u1_teacache(pipeline: Any, config: DiffusionCacheConfig) ->
         rel_l1_thresh=config.rel_l1_thresh,
         coefficients=config.coefficients,
     )
-    transformer = pipeline.transformer
+    transformer = pipeline.denoising_transformer
     apply_teacache_hook(transformer, teacache_config)
 
     logger.info(
