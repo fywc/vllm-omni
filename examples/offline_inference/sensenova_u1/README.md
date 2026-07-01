@@ -40,9 +40,9 @@ python end2end.py --modality text2text \
 python end2end.py --prompt "A futuristic cityscape at sunset" \
                   --width 2048 --height 1024 --think
 
-# Text-to-image with Cache-DiT acceleration
+# Text-to-image with cache acceleration (cache_dit or tea_cache)
 python end2end.py --prompt "A cute cat" \
-                  --cache-backend cache_dit \
+                  --cache-backend tea_cache
 ```
 
 > **Note**: Default configuration works on a single **NVIDIA A100 (80GB)** or **H100** GPU.
@@ -151,7 +151,7 @@ python end2end.py \
 | `--enforce-eager` | False | Disable torch.compile |
 | `--deploy-config` | None | Path to deploy YAML. Pass `vllm_omni/deploy/sensenova_u1.yaml` to enable two stages separation |
 | `--enable-cpu-offload` | False | Enable module-wise (sequential) CPU offload to reduce peak VRAM |
-| `--cache-backend` | None | Set to `cache_dit` for Cache-DiT acceleration |
+| `--cache-backend` | None | Set to `cache_dit` or `tea_cache` for image generation acceleration |
 | `--enable-cache-dit-summary` | False | Print Cache-DiT cache statistics after generation |
 
 ## Reducing GPU Memory Usage

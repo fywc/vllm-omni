@@ -150,6 +150,12 @@ def parse_args():
         help="Number of GPUs for tensor parallelism.",
     )
     parser.add_argument(
+        "--cfg-parallel-size",
+        type=int,
+        default=1,
+        help="Number of GPUs for CFG parallelism.",
+    )
+    parser.add_argument(
         "--enforce-eager",
         action="store_true",
         help="Disable torch.compile and force eager execution.",
@@ -168,7 +174,7 @@ def parse_args():
         "--cache-backend",
         type=str,
         default=None,
-        choices=["cache_dit"],
+        choices=["cache_dit", "tea_cache"],
         help="Cache backend to use for image generation acceleration.",
     )
     parser.add_argument(
@@ -219,6 +225,7 @@ def main():
         cache_backend=args.cache_backend,
         enable_cache_dit_summary=args.enable_cache_dit_summary,
         deploy_config=args.deploy_config,
+        cfg_parallel_size=args.cfg_parallel_size,
     )
 
     extra_args = {
@@ -271,6 +278,7 @@ def main():
     print(f"  Seed           : {args.seed}")
     print(f"  Think mode     : {args.think}")
     print(f"  TP size        : {args.tensor_parallel_size}")
+    print(f"  CFG size       : {args.cfg_parallel_size}")
     print(f"  Cache backend  : {args.cache_backend or 'none'}")
     print(f"{'=' * 60}\n")
 
